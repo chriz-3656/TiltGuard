@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="style.css" />
+    <title>TiltGuard</title>
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <header class="notification-card screen-blur-target" aria-label="Sample notification">
+        <div class="notification-title">🔔 New message from Alex</div>
+        <div class="notification-text">"Are we meeting at 5 PM?"</div>
+      </header>
+
+      <main class="content-wrap screen-blur-target">
+        <h1>TiltGuard</h1>
+        <p class="subtitle">Privacy shield powered by motion + face detection.</p>
+
+        <button id="enableBtn" class="primary-btn">Enable Privacy Protection</button>
+
+        <section class="sensitive-panel" aria-label="Demo private content">
+          <h2>Private Demo Content</h2>
+          <p>Account Balance: $12,480.00</p>
+          <p>Verification Code: 827391</p>
+        </section>
+
+        <section class="dashboard" aria-label="Sensor and camera status">
+          <h3>Debug Dashboard</h3>
+          <p>Tilt X (gamma): <span id="tiltX">0</span>°</p>
+          <p>Tilt Y (beta): <span id="tiltY">0</span>°</p>
+          <p>Faces Detected: <span id="faces">0</span></p>
+          <p>Privacy Mode: <span id="privacyStatus">OFF</span></p>
+        </section>
+      </main>
+
+      <video id="cameraFeed" autoplay playsinline muted></video>
+
+      <div id="privacyOverlay" class="privacy-overlay" aria-live="polite" aria-atomic="true">
+        <div class="overlay-card">🔒 Privacy Mode Active</div>
+      </div>
+    </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script defer src="script.js"></script>
+  </body>
+</html>
