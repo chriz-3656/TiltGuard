@@ -1,4 +1,4 @@
-const CACHE_NAME = "tiltguard-v3";
+const CACHE_NAME = "tiltguard-v4";
 
 const CORE_ASSETS = [
   "/",
@@ -60,6 +60,20 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     (async () => {
+      if (event.request.mode === "navigate") {
+        try {
+          const navigationResponse = await fetch(event.request);
+          if (navigationResponse && navigationResponse.ok) {
+            return navigationResponse;
+          }
+        } catch (error) {
+          // Fall through to app shell fallback.
+        }
+
+        const shell = (await caches.match("/")) || (await caches.match("/index.html"));
+        return shell || Response.error();
+      }
+
       const cached = await caches.match(event.request);
       if (cached) {
         return cached;
