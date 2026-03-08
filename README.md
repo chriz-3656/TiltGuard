@@ -1,49 +1,86 @@
 # TiltGuard
 
-TiltGuard is a mobile-first Progressive Web App (PWA) that protects sensitive on-screen content by monitoring phone orientation and front-camera face count.
+TiltGuard is a mobile-first Progressive Web App (PWA) that simulates a privacy screen for sensitive content.
+It uses device tilt + front camera face count to determine when Privacy Mode should activate.
 
-When risk is detected (unsafe tilt or multiple viewers), the app enters Privacy Mode and blacks out the notification card while keeping the debug dashboard visible.
+When risk is detected, the app blacks out the notification card and shows a privacy status pill while keeping debug information visible.
 
-## Key Features
+## Latest Upgrades and Fixes
 
-- Real-time tilt detection using `DeviceOrientationEvent` (`gamma`, `beta`)
-- Real-time face counting from front camera
-- Face engine fallback strategy:
-  - Primary: `face-api.js` TinyFaceDetector
-  - Fallback: browser-native `FaceDetector` API
-- Privacy trigger logic based on either:
-  - unsafe tilt, or
-  - more than one detected face
-- Privacy Mode UX:
-  - notification card is blacked out
-  - persistent privacy pill: `🔒 Privacy Mode Active`
-  - debug dashboard remains readable
-- Calibration and control tools:
-  - Sensitivity presets: `Relaxed`, `Balanced`, `Strict`
-  - `Calibrate Hold` button for natural hand posture
-  - `Reset Calibration` button
-  - `Camera Preview: ON/OFF` toggle
-- Rich dashboard status fields:
-  - `System`
-  - `Face Engine`
-  - `Sensitivity`
-  - `Tilt X`, `Tilt Y`
-  - `Faces Detected`
-  - `Privacy Mode`
-  - `Privacy Reason`
-- Installable PWA with offline caching
+- Added **fullscreen toggle** (`Fullscreen: ON/OFF`) with browser fallback support
+- Switched UI to **single-page, no-scroll layout** (`100dvh`, compact controls)
+- Redesigned notification card to look more realistic:
+  - app label + time meta row
+  - sender line
+  - message preview body
+- Added a **custom notification settings page** (`/settings.html`)
+- Added navigation button on home page: **Customize Notification**
+- Added persistent custom notification storage via `localStorage`
+- Added live preview + save/reset behavior on settings page
+- Improved PWA launch reliability:
+  - manifest `id` + `start_url` use root `/`
+  - service worker navigation fallback to app shell
+- Updated service-worker cache to include new page/assets (`tiltguard-v7`)
 
-## Current Tilt Model
+## Core Features
 
-TiltGuard now uses a handheld-friendly mid-range tilt model instead of strict absolute thresholds.
+- Real-time tilt detection (`gamma`, `beta`) via `DeviceOrientationEvent`
+- Real-time face counting via front camera
+- Face detection engine strategy:
+  - primary: `face-api.js` TinyFaceDetector
+  - fallback: native `FaceDetector`
+- Privacy mode triggers when:
+  - tilt is unsafe, or
+  - multiple faces are detected
+- Privacy mode behavior:
+  - notification card blacked out
+  - privacy badge visible
+  - debug dashboard remains visible
 
-- Smoothed orientation input (`SMOOTHING_ALPHA`)
+## Tilt Logic (Handheld Friendly)
+
+TiltGuard uses a mid-range model (not strict absolute thresholds) to better match natural phone grip.
+
+- Smoothed sensor values (`SMOOTHING_ALPHA`)
 - Sensitivity profiles with hysteresis:
-  - `activate` thresholds (enter Privacy Mode)
-  - `clear` thresholds (exit Privacy Mode)
-- Optional hold calibration offsets to normalize to user grip
+  - `Relaxed`
+  - `Balanced`
+  - `Strict`
+- Separate enter/exit ranges (`activate` / `clear`)
+- Hold posture calibration with offset support
 
-This prevents false positives where natural handheld `beta` values were previously treated as unsafe.
+## Runtime Controls
+
+Main page controls:
+
+- `Enable Privacy Protection`
+- `Sensitivity` selector
+- `Calibrate Hold`
+- `Camera Preview: ON/OFF`
+- `Reset Calibration`
+- `Fullscreen: ON/OFF`
+- `Customize Notification` (navigation to settings page)
+
+Settings page controls:
+
+- App name
+- Sender
+- Message
+- Time label
+- Save
+- Reset Default
+- Back to main
+
+## Debug Dashboard Fields
+
+- System
+- Face Engine
+- Sensitivity
+- Tilt X (gamma)
+- Tilt Y (beta)
+- Faces Detected
+- Privacy Mode
+- Privacy Reason
 
 ## Project Structure
 
@@ -59,10 +96,14 @@ This prevents false positives where natural handheld `beta` values were previous
 ├── README.md
 ├── script.js
 ├── service-worker.js
+├── settings.html
+├── settings.js
 └── style.css
 ```
 
-## Core JavaScript Functions
+## Key JavaScript Functions
+
+Detection and privacy:
 
 - `initCamera()`
 - `initSensors()`
@@ -71,23 +112,29 @@ This prevents false positives where natural handheld `beta` values were previous
 - `activatePrivacyMode()`
 - `deactivatePrivacyMode()`
 
-Supporting controls:
+Controls and UX:
 
 - `onSensitivityChange()`
 - `calibrateHoldPosition()`
 - `resetCalibration()`
 - `toggleCameraPreview()`
+- `toggleFullscreen()`
+
+Notification settings:
+
+- `loadNotificationSettings()`
+- `applyNotificationSettings()`
 
 ## Permission Flow
 
-User taps **Enable Privacy Protection**:
+After tapping **Enable Privacy Protection**:
 
-1. Motion/orientation permission is requested (including iOS Safari flow)
-2. Front camera permission is requested
-3. Face engine is initialized (`face-api.js` or native fallback)
-4. Continuous tilt + face checks begin
+1. Motion permission (including iOS request flow)
+2. Camera permission
+3. Face engine initialization
+4. Continuous tilt + face detection loop
 
-If permission/setup fails, app state updates in dashboard and the enable button resets.
+If setup fails, system state is shown in dashboard and user can retry.
 
 ## PWA Configuration
 
@@ -105,34 +152,33 @@ If permission/setup fails, app state updates in dashboard and the enable button 
 
 ### `service-worker.js`
 
-- Cache version: `tiltguard-v5`
-- Pre-caches app shell:
+- Cache version: `tiltguard-v7`
+- Pre-caches:
   - `/`
   - `/index.html`
+  - `/settings.html`
   - `/style.css`
   - `/script.js`
+  - `/settings.js`
   - `/manifest.json`
-  - `/icons/icon-192.png`
-  - `/icons/icon-512.png`
+  - app icons
 - Opportunistically caches face model files
-- Navigation fallback returns cached app shell when network fails
+- Navigation fallback serves cached shell when network fails
 
-## Face Model Files (Optional, Recommended)
+## Face Model Files (Optional)
 
-To enable `face-api.js` TinyFaceDetector fully, add these files into `models/`:
+For `face-api.js` TinyFaceDetector, place in `models/`:
 
 - `tiny_face_detector_model-weights_manifest.json`
 - `tiny_face_detector_model-shard1`
 
-Download source:
+Source:
 
 - https://github.com/justadudewhohacks/face-api.js/tree/master/weights
 
-If unavailable, TiltGuard attempts native `FaceDetector`.
+If not present, app attempts native `FaceDetector`.
 
-## Local Development
-
-Run a local server from project root:
+## Local Run
 
 ```bash
 python3 -m http.server 8080
@@ -142,44 +188,36 @@ Open:
 
 - `http://localhost:8080`
 
-Tap **Enable Privacy Protection** and allow camera + motion permissions.
-
 ## Install as PWA
 
-### Android (Chrome)
+Android Chrome:
 
 1. Open hosted HTTPS URL
-2. Chrome menu -> **Install app** / **Add to Home screen**
+2. Menu -> Install app / Add to Home screen
 3. Launch from home screen
 
-### iOS (Safari)
+iOS Safari:
 
 1. Open hosted HTTPS URL
-2. Share -> **Add to Home Screen**
+2. Share -> Add to Home Screen
 3. Launch from home screen
 
-If an older installed version behaves incorrectly after updates, uninstall and reinstall the PWA to refresh manifest/start URL behavior.
+If old installs behave incorrectly after updates, uninstall and reinstall.
 
-## Validation Checklist
+## Test Checklist
 
-- App enables after permissions are granted
-- Natural handheld posture remains visible
+- Permissions granted and protection starts
+- Natural handheld posture stays visible
 - Extreme tilt triggers Privacy Mode
 - Multiple faces trigger Privacy Mode
-- Notification card blacks out in Privacy Mode
-- Dashboard remains visible in all states
-- Camera preview toggle affects only preview visibility, not detection loop
-- App opens offline after first successful load
-
-## Browser Notes
-
-- Best target: Android Chrome (latest)
-- iOS Safari requires user gesture for sensor permission
-- Camera requires secure context (`https://` or `localhost`)
-- Native `FaceDetector` support varies by browser
+- Notification card blackouts in Privacy Mode
+- Dashboard always remains visible
+- Fullscreen toggle works
+- Notification customization persists across reloads
+- Settings page works offline after first cache
 
 ## Privacy Notes
 
-- Processing is client-side in browser
-- No backend in this project
-- No camera data is uploaded by app logic
+- Processing is client-side only
+- No backend required
+- Camera data is not uploaded by app code
