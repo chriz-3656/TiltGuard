@@ -21,6 +21,15 @@
         <p class="subtitle">Privacy shield powered by motion + face detection.</p>
 
         <button id="enableBtn" class="primary-btn">Enable Privacy Protection</button>
+        <div class="control-row">
+          <label for="sensitivitySelect">Sensitivity</label>
+          <select id="sensitivitySelect">
+            <option value="relaxed">Relaxed</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="strict">Strict</option>
+          </select>
+          <button id="calibrateBtn" class="secondary-btn" type="button">Calibrate Hold</button>
+        </div>
 
         <section class="sensitive-panel" aria-label="Demo private content">
           <h2>Private Demo Content</h2>
@@ -34,6 +43,7 @@
           <p>Tilt Y (beta): <span id="tiltY">0</span>°</p>
           <p>Faces Detected: <span id="faces">0</span></p>
           <p>Privacy Mode: <span id="privacyStatus">OFF</span></p>
+          <p>Privacy Reason: <span id="privacyReason">None</span></p>
         </section>
       </main>
 

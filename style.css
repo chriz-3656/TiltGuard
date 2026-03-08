@@ -77,8 +77,39 @@ h1 {
   touch-action: manipulation;
 }
 
+.secondary-btn {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 10px 12px;
+}
+
 .primary-btn:disabled {
   opacity: 0.6;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.control-row label {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.control-row select {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--text);
+  padding: 10px;
+  font-size: 0.92rem;
 }
 
 .sensitive-panel,

@@ -1,6 +1,20 @@
-const TILT_GAMMA_LIMIT = 25;
-const TILT_BETA_LIMIT = 30;
 const FACE_SCAN_INTERVAL_MS = 900;
+const SMOOTHING_ALPHA = 0.22;
+
+const TILT_PROFILES = {
+  relaxed: {
+    activate: { gammaMax: 40, betaMin: 10, betaMax: 108 },
+    clear: { gammaMax: 34, betaMin: 16, betaMax: 100 },
+  },
+  balanced: {
+    activate: { gammaMax: 36, betaMin: 14, betaMax: 102 },
+    clear: { gammaMax: 30, betaMin: 20, betaMax: 96 },
+  },
+  strict: {
+    activate: { gammaMax: 30, betaMin: 18, betaMax: 94 },
+    clear: { gammaMax: 26, betaMin: 22, betaMax: 90 },
+  },
+};
 
 const state = {
   tiltGamma: 0,
@@ -9,11 +23,17 @@ const state = {
   tiltTriggered: false,
   faceTriggered: false,
   privacyMode: false,
+  privacyReason: "None",
   cameraStream: null,
   faceTimerId: null,
   initialized: false,
   faceEngine: "none",
   nativeFaceDetector: null,
+  smoothedGamma: 0,
+  smoothedBeta: 0,
+  sensitivity: "balanced",
+  betaOffset: 0,
+  gammaOffset: 0,
 };
 
 const ui = {
@@ -23,10 +43,15 @@ const ui = {
   tiltY: document.getElementById("tiltY"),
   faces: document.getElementById("faces"),
   privacyStatus: document.getElementById("privacyStatus"),
+  privacyReason: document.getElementById("privacyReason"),
   cameraFeed: document.getElementById("cameraFeed"),
+  sensitivitySelect: document.getElementById("sensitivitySelect"),
+  calibrateBtn: document.getElementById("calibrateBtn"),
 };
 
 ui.enableBtn.addEventListener("click", enableProtection);
+ui.sensitivitySelect.addEventListener("change", onSensitivityChange);
+ui.calibrateBtn.addEventListener("click", calibrateHoldPosition);
 window.addEventListener("beforeunload", cleanup);
 
 registerServiceWorker();
@@ -78,11 +103,24 @@ async function initSensors() {
 }
 
 function detectTilt(event) {
-  state.tiltGamma = Number.isFinite(event.gamma) ? event.gamma : 0;
-  state.tiltBeta = Number.isFinite(event.beta) ? event.beta : 0;
+  const rawGamma = Number.isFinite(event.gamma) ? event.gamma : 0;
+  const rawBeta = Number.isFinite(event.beta) ? event.beta : 0;
 
-  state.tiltTriggered =
-    Math.abs(state.tiltGamma) > TILT_GAMMA_LIMIT || Math.abs(state.tiltBeta) > TILT_BETA_LIMIT;
+  state.tiltGamma = rawGamma;
+  state.tiltBeta = rawBeta;
+
+  state.smoothedGamma =
+    state.smoothedGamma + SMOOTHING_ALPHA * (rawGamma - state.smoothedGamma);
+  state.smoothedBeta = state.smoothedBeta + SMOOTHING_ALPHA * (rawBeta - state.smoothedBeta);
+
+  const adjustedGamma = state.smoothedGamma - state.gammaOffset;
+  const adjustedBeta = state.smoothedBeta - state.betaOffset;
+  const profile = TILT_PROFILES[state.sensitivity];
+  const limits = state.privacyMode ? profile.clear : profile.activate;
+
+  const gammaUnsafe = Math.abs(adjustedGamma) > limits.gammaMax;
+  const betaUnsafe = adjustedBeta < limits.betaMin || adjustedBeta > limits.betaMax;
+  state.tiltTriggered = gammaUnsafe || betaUnsafe;
 
   updateDashboard();
   evaluatePrivacyMode();
@@ -156,6 +194,14 @@ async function detectFaces() {
 }
 
 function evaluatePrivacyMode() {
+  if (state.faceTriggered) {
+    state.privacyReason = "Multiple faces";
+  } else if (state.tiltTriggered) {
+    state.privacyReason = "Unsafe tilt angle";
+  } else {
+    state.privacyReason = "None";
+  }
+
   if (state.tiltTriggered || state.faceTriggered) {
     activatePrivacyMode();
     return;
@@ -189,6 +235,17 @@ function updateDashboard() {
   ui.tiltY.textContent = state.tiltBeta.toFixed(1);
   ui.faces.textContent = String(state.facesDetected);
   ui.privacyStatus.textContent = state.privacyMode ? "ON" : "OFF";
+  ui.privacyReason.textContent = state.privacyReason;
+}
+
+function onSensitivityChange(event) {
+  state.sensitivity = event.target.value in TILT_PROFILES ? event.target.value : "balanced";
+}
+
+function calibrateHoldPosition() {
+  // Offsets around current posture so natural holding angles are treated as neutral.
+  state.gammaOffset = state.smoothedGamma;
+  state.betaOffset = state.smoothedBeta - 35;
 }
 
 function cleanup() {
