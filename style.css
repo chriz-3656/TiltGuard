@@ -112,6 +112,12 @@ h1 {
   font-size: 0.92rem;
 }
 
+.control-row-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 .sensitive-panel,
 .dashboard {
   background: var(--card);
@@ -143,6 +149,12 @@ h1 {
   object-fit: cover;
   opacity: 0.65;
   pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#cameraFeed.preview-hidden {
+  opacity: 0.05;
+  transform: scale(0.75);
 }
 
 .privacy-overlay {

@@ -34,6 +34,8 @@ const state = {
   sensitivity: "balanced",
   betaOffset: 0,
   gammaOffset: 0,
+  cameraPreviewVisible: true,
+  systemState: "Idle",
 };
 
 const ui = {
@@ -44,14 +46,21 @@ const ui = {
   faces: document.getElementById("faces"),
   privacyStatus: document.getElementById("privacyStatus"),
   privacyReason: document.getElementById("privacyReason"),
+  systemState: document.getElementById("systemState"),
+  engineState: document.getElementById("engineState"),
+  sensitivityState: document.getElementById("sensitivityState"),
   cameraFeed: document.getElementById("cameraFeed"),
   sensitivitySelect: document.getElementById("sensitivitySelect"),
   calibrateBtn: document.getElementById("calibrateBtn"),
+  previewToggleBtn: document.getElementById("previewToggleBtn"),
+  resetCalibrateBtn: document.getElementById("resetCalibrateBtn"),
 };
 
 ui.enableBtn.addEventListener("click", enableProtection);
 ui.sensitivitySelect.addEventListener("change", onSensitivityChange);
 ui.calibrateBtn.addEventListener("click", calibrateHoldPosition);
+ui.previewToggleBtn.addEventListener("click", toggleCameraPreview);
+ui.resetCalibrateBtn.addEventListener("click", resetCalibration);
 window.addEventListener("beforeunload", cleanup);
 
 registerServiceWorker();
@@ -63,6 +72,8 @@ async function enableProtection() {
 
   ui.enableBtn.disabled = true;
   ui.enableBtn.textContent = "Starting...";
+  state.systemState = "Requesting permissions";
+  updateDashboard();
 
   try {
     await requestMotionPermission();
@@ -72,11 +83,15 @@ async function enableProtection() {
     startFaceDetectionLoop();
 
     state.initialized = true;
+    state.systemState = "Protection active";
     ui.enableBtn.textContent = "Protection Enabled";
+    updateDashboard();
   } catch (error) {
     console.error(error);
+    state.systemState = "Permission/setup failed";
     ui.enableBtn.disabled = false;
     ui.enableBtn.textContent = "Enable Privacy Protection";
+    updateDashboard();
     alert("Could not enable all permissions/features. Please allow camera and motion access.");
   }
 }
@@ -143,6 +158,7 @@ async function loadFaceModel() {
       // TinyFaceDetector is lightweight and works well on mobile for basic counting.
       await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
       state.faceEngine = "face-api";
+      updateDashboard();
       return;
     } catch (error) {
       console.warn("face-api model load failed. Trying native FaceDetector fallback.", error);
@@ -152,6 +168,7 @@ async function loadFaceModel() {
   if ("FaceDetector" in window) {
     state.nativeFaceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 5 });
     state.faceEngine = "native";
+    updateDashboard();
     return;
   }
 
@@ -236,16 +253,38 @@ function updateDashboard() {
   ui.faces.textContent = String(state.facesDetected);
   ui.privacyStatus.textContent = state.privacyMode ? "ON" : "OFF";
   ui.privacyReason.textContent = state.privacyReason;
+  ui.systemState.textContent = state.systemState;
+  ui.engineState.textContent =
+    state.faceEngine === "none" ? "Not loaded" : state.faceEngine.toUpperCase();
+  ui.sensitivityState.textContent =
+    state.sensitivity.charAt(0).toUpperCase() + state.sensitivity.slice(1);
+  ui.previewToggleBtn.textContent = `Camera Preview: ${state.cameraPreviewVisible ? "ON" : "OFF"}`;
 }
 
 function onSensitivityChange(event) {
   state.sensitivity = event.target.value in TILT_PROFILES ? event.target.value : "balanced";
+  updateDashboard();
 }
 
 function calibrateHoldPosition() {
   // Offsets around current posture so natural holding angles are treated as neutral.
   state.gammaOffset = state.smoothedGamma;
   state.betaOffset = state.smoothedBeta - 35;
+  state.systemState = "Calibrated for current hold";
+  updateDashboard();
+}
+
+function resetCalibration() {
+  state.gammaOffset = 0;
+  state.betaOffset = 0;
+  state.systemState = "Calibration reset";
+  updateDashboard();
+}
+
+function toggleCameraPreview() {
+  state.cameraPreviewVisible = !state.cameraPreviewVisible;
+  ui.cameraFeed.classList.toggle("preview-hidden", !state.cameraPreviewVisible);
+  updateDashboard();
 }
 
 function cleanup() {
