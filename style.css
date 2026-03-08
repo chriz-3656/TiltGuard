@@ -1,9 +1,10 @@
 :root {
-  --bg: #050505;
-  --card: #161616;
-  --text: #f5f5f5;
-  --muted: #b6b6b6;
-  --accent: #00d4ff;
+  --bg: #f3f6fb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #5f6b7a;
+  --accent: #0ea5e9;
+  --border: #dce3ef;
 }
 
 * {
@@ -14,7 +15,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: radial-gradient(circle at top, #1a1a1a, var(--bg) 60%);
+  background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -29,11 +30,12 @@ body {
 }
 
 .notification-card {
-  background: linear-gradient(145deg, #2a2a2a, #1c1c1c);
-  border: 1px solid #343434;
+  background: linear-gradient(145deg, #ffffff, #f2f7ff);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px 14px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .notification-title {
@@ -67,7 +69,7 @@ h1 {
   border: none;
   border-radius: 12px;
   background: var(--accent);
-  color: #001318;
+  color: #ffffff;
   font-weight: 700;
   font-size: 1rem;
   padding: 14px;
@@ -82,9 +84,10 @@ h1 {
 .sensitive-panel,
 .dashboard {
   background: var(--card);
-  border: 1px solid #2f2f2f;
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
 }
 
 .sensitive-panel h2,
@@ -105,22 +108,18 @@ h1 {
   width: 112px;
   height: 150px;
   border-radius: 10px;
-  border: 1px solid #424242;
+  border: 1px solid #ccd7e9;
   object-fit: cover;
-  opacity: 0.4;
+  opacity: 0.65;
   pointer-events: none;
-}
-
-.screen-blur-target {
-  transition: filter 0.3s ease;
 }
 
 .privacy-overlay {
   position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.65);
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  display: block;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -128,18 +127,24 @@ h1 {
 }
 
 .overlay-card {
-  padding: 14px 18px;
-  border-radius: 12px;
-  border: 1px solid #3c3c3c;
-  background: rgba(10, 10, 10, 0.9);
-  font-size: 1.1rem;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #101010;
+  background: rgba(0, 0, 0, 0.9);
+  color: #ffffff;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
-.app-shell.privacy-active .screen-blur-target,
-.app-shell.privacy-active .sensitive-panel,
-.app-shell.privacy-active .dashboard {
-  filter: blur(10px) brightness(0.2);
+.app-shell.privacy-active .notification-card {
+  background: #000000;
+  border-color: #000000;
+  color: #000000;
+}
+
+.app-shell.privacy-active .notification-card .notification-title,
+.app-shell.privacy-active .notification-card .notification-text {
+  color: #000000;
 }
 
 .app-shell.privacy-active .privacy-overlay {
