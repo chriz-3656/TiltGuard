@@ -1,4 +1,4 @@
-const CACHE_NAME = "tiltguard-v5";
+const CACHE_NAME = "tiltguard-v6";
 
 const CORE_ASSETS = [
   "/",

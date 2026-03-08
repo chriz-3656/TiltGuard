@@ -12,13 +12,16 @@
   <body>
     <div id="app" class="app-shell">
       <header class="notification-card screen-blur-target" aria-label="Sample notification">
-        <div class="notification-title">🔔 New message from Alex</div>
-        <div class="notification-text">"Are we meeting at 5 PM?"</div>
+        <div class="notification-meta">
+          <span class="notification-app">Messages</span>
+          <span class="notification-time">now</span>
+        </div>
+        <div class="notification-title">Alex</div>
+        <div class="notification-text">Are we meeting at 5 PM? I can share the location.</div>
       </header>
 
       <main class="content-wrap screen-blur-target">
         <h1>TiltGuard</h1>
-        <p class="subtitle">Privacy shield powered by motion + face detection.</p>
 
         <button id="enableBtn" class="primary-btn">Enable Privacy Protection</button>
         <div class="control-row">
@@ -33,13 +36,8 @@
         <div class="control-row-secondary">
           <button id="previewToggleBtn" class="secondary-btn" type="button">Camera Preview: ON</button>
           <button id="resetCalibrateBtn" class="secondary-btn" type="button">Reset Calibration</button>
+          <button id="fullscreenBtn" class="secondary-btn" type="button">Fullscreen: OFF</button>
         </div>
-
-        <section class="sensitive-panel" aria-label="Demo private content">
-          <h2>Private Demo Content</h2>
-          <p>Account Balance: $12,480.00</p>
-          <p>Verification Code: 827391</p>
-        </section>
 
         <section class="dashboard" aria-label="Sensor and camera status">
           <h3>Debug Dashboard</h3>

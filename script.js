@@ -36,6 +36,7 @@ const state = {
   gammaOffset: 0,
   cameraPreviewVisible: true,
   systemState: "Idle",
+  isFullscreen: false,
 };
 
 const ui = {
@@ -54,6 +55,7 @@ const ui = {
   calibrateBtn: document.getElementById("calibrateBtn"),
   previewToggleBtn: document.getElementById("previewToggleBtn"),
   resetCalibrateBtn: document.getElementById("resetCalibrateBtn"),
+  fullscreenBtn: document.getElementById("fullscreenBtn"),
 };
 
 ui.enableBtn.addEventListener("click", enableProtection);
@@ -61,9 +63,13 @@ ui.sensitivitySelect.addEventListener("change", onSensitivityChange);
 ui.calibrateBtn.addEventListener("click", calibrateHoldPosition);
 ui.previewToggleBtn.addEventListener("click", toggleCameraPreview);
 ui.resetCalibrateBtn.addEventListener("click", resetCalibration);
+ui.fullscreenBtn.addEventListener("click", toggleFullscreen);
+document.addEventListener("fullscreenchange", syncFullscreenState);
+document.addEventListener("webkitfullscreenchange", syncFullscreenState);
 window.addEventListener("beforeunload", cleanup);
 
 registerServiceWorker();
+updateDashboard();
 
 async function enableProtection() {
   if (state.initialized) {
@@ -259,6 +265,7 @@ function updateDashboard() {
   ui.sensitivityState.textContent =
     state.sensitivity.charAt(0).toUpperCase() + state.sensitivity.slice(1);
   ui.previewToggleBtn.textContent = `Camera Preview: ${state.cameraPreviewVisible ? "ON" : "OFF"}`;
+  ui.fullscreenBtn.textContent = `Fullscreen: ${state.isFullscreen ? "ON" : "OFF"}`;
 }
 
 function onSensitivityChange(event) {
@@ -284,6 +291,34 @@ function resetCalibration() {
 function toggleCameraPreview() {
   state.cameraPreviewVisible = !state.cameraPreviewVisible;
   ui.cameraFeed.classList.toggle("preview-hidden", !state.cameraPreviewVisible);
+  updateDashboard();
+}
+
+async function toggleFullscreen() {
+  try {
+    if (state.isFullscreen) {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      return;
+    }
+
+    if (document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen();
+    }
+  } catch (error) {
+    console.error("Fullscreen toggle failed:", error);
+    state.systemState = "Fullscreen blocked by browser";
+    updateDashboard();
+  }
+}
+
+function syncFullscreenState() {
+  state.isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
   updateDashboard();
 }
 

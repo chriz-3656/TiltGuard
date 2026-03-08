@@ -14,7 +14,8 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  height: 100dvh;
+  overflow: hidden;
   background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -22,47 +23,60 @@ body {
 
 .app-shell {
   position: relative;
-  min-height: 100vh;
-  padding: 16px;
+  height: 100dvh;
+  padding: 10px 12px 8px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
+  overflow: hidden;
 }
 
 .notification-card {
-  background: linear-gradient(145deg, #ffffff, #f2f7ff);
+  background: linear-gradient(145deg, #ffffff, #f4f8ff);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px 14px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
   transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.notification-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.notification-app,
+.notification-time {
+  font-size: 0.78rem;
+  color: #6a7686;
+  font-weight: 600;
 }
 
 .notification-title {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
 }
 
 .notification-text {
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+  line-height: 1.25;
 }
 
 .content-wrap {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
+  min-height: 0;
+  flex: 1;
 }
 
 h1 {
-  margin: 8px 0 0;
-  font-size: clamp(1.6rem, 5vw, 2rem);
-}
-
-.subtitle {
   margin: 0;
-  color: var(--muted);
+  font-size: clamp(1.4rem, 4.8vw, 1.8rem);
 }
 
 .primary-btn {
@@ -71,8 +85,8 @@ h1 {
   background: var(--accent);
   color: #ffffff;
   font-weight: 700;
-  font-size: 1rem;
-  padding: 14px;
+  font-size: 0.95rem;
+  padding: 11px;
   width: 100%;
   touch-action: manipulation;
 }
@@ -83,8 +97,8 @@ h1 {
   background: #ffffff;
   color: var(--text);
   font-weight: 600;
-  font-size: 0.92rem;
-  padding: 10px 12px;
+  font-size: 0.85rem;
+  padding: 9px 10px;
 }
 
 .primary-btn:disabled {
@@ -108,42 +122,44 @@ h1 {
   border-radius: 10px;
   background: #ffffff;
   color: var(--text);
-  padding: 10px;
-  font-size: 0.92rem;
+  padding: 9px;
+  font-size: 0.85rem;
 }
 
 .control-row-secondary {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
 }
 
-.sensitive-panel,
 .dashboard {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 14px;
+  padding: 10px 12px;
   box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
-.sensitive-panel h2,
 .dashboard h3 {
   margin: 0 0 8px;
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
-.sensitive-panel p,
 .dashboard p {
-  margin: 4px 0;
+  margin: 2px 0;
+  font-size: 0.92rem;
+  line-height: 1.2;
 }
 
 #cameraFeed {
   position: fixed;
-  right: 12px;
-  bottom: 12px;
-  width: 112px;
-  height: 150px;
+  right: 8px;
+  bottom: 8px;
+  width: 92px;
+  height: 122px;
   border-radius: 10px;
   border: 1px solid #ccd7e9;
   object-fit: cover;
@@ -197,7 +213,7 @@ h1 {
 
 @media (min-width: 768px) {
   .app-shell {
-    max-width: 560px;
+    max-width: 520px;
     margin: 0 auto;
   }
 }
