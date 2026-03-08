@@ -1,5 +1,12 @@
 const FACE_SCAN_INTERVAL_MS = 900;
 const SMOOTHING_ALPHA = 0.22;
+const NOTIFICATION_STORAGE_KEY = "tiltguard_notification_v1";
+const DEFAULT_NOTIFICATION = {
+  app: "Messages",
+  title: "Alex",
+  text: "Are we meeting at 5 PM? I can share the location.",
+  time: "now",
+};
 
 const TILT_PROFILES = {
   relaxed: {
@@ -51,6 +58,10 @@ const ui = {
   engineState: document.getElementById("engineState"),
   sensitivityState: document.getElementById("sensitivityState"),
   cameraFeed: document.getElementById("cameraFeed"),
+  notificationApp: document.getElementById("notificationApp"),
+  notificationTitle: document.getElementById("notificationTitle"),
+  notificationText: document.getElementById("notificationText"),
+  notificationTime: document.getElementById("notificationTime"),
   sensitivitySelect: document.getElementById("sensitivitySelect"),
   calibrateBtn: document.getElementById("calibrateBtn"),
   previewToggleBtn: document.getElementById("previewToggleBtn"),
@@ -69,6 +80,7 @@ document.addEventListener("webkitfullscreenchange", syncFullscreenState);
 window.addEventListener("beforeunload", cleanup);
 
 registerServiceWorker();
+applyNotificationSettings(loadNotificationSettings());
 updateDashboard();
 
 async function enableProtection() {
@@ -348,4 +360,35 @@ function registerServiceWorker() {
       console.error("Service worker registration failed:", error);
     }
   });
+}
+
+function loadNotificationSettings() {
+  try {
+    const raw = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+    if (!raw) {
+      return { ...DEFAULT_NOTIFICATION };
+    }
+
+    const parsed = JSON.parse(raw);
+    return {
+      app: sanitizeSetting(parsed.app, DEFAULT_NOTIFICATION.app),
+      title: sanitizeSetting(parsed.title, DEFAULT_NOTIFICATION.title),
+      text: sanitizeSetting(parsed.text, DEFAULT_NOTIFICATION.text),
+      time: sanitizeSetting(parsed.time, DEFAULT_NOTIFICATION.time),
+    };
+  } catch (error) {
+    console.error("Failed to load notification settings", error);
+    return { ...DEFAULT_NOTIFICATION };
+  }
+}
+
+function applyNotificationSettings(settings) {
+  ui.notificationApp.textContent = settings.app;
+  ui.notificationTitle.textContent = settings.title;
+  ui.notificationText.textContent = settings.text;
+  ui.notificationTime.textContent = settings.time;
+}
+
+function sanitizeSetting(value, fallback) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
 }

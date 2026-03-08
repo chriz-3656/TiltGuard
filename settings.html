@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="style.css" />
+    <title>TiltGuard - Notification Settings</title>
+  </head>
+  <body>
+    <div class="app-shell settings-shell">
+      <header class="notification-card" aria-label="Notification preview">
+        <div class="notification-meta">
+          <span id="previewApp" class="notification-app">Messages</span>
+          <span id="previewTime" class="notification-time">now</span>
+        </div>
+        <div id="previewTitle" class="notification-title">Alex</div>
+        <div id="previewText" class="notification-text">Are we meeting at 5 PM? I can share the location.</div>
+      </header>
+
+      <main class="content-wrap">
+        <h1>Notification Settings</h1>
+
+        <section class="dashboard settings-panel" aria-label="Notification customization form">
+          <label class="field-label" for="appInput">App Name</label>
+          <input id="appInput" class="field-input" maxlength="24" placeholder="Messages" />
+
+          <label class="field-label" for="senderInput">Sender</label>
+          <input id="senderInput" class="field-input" maxlength="28" placeholder="Alex" />
+
+          <label class="field-label" for="messageInput">Message</label>
+          <textarea id="messageInput" class="field-input field-area" maxlength="120" placeholder="Type your notification message..."></textarea>
+
+          <label class="field-label" for="timeInput">Time Label</label>
+          <input id="timeInput" class="field-input" maxlength="12" placeholder="now" />
+
+          <div class="control-row-secondary">
+            <button id="saveBtn" class="primary-btn" type="button">Save</button>
+            <button id="resetBtn" class="secondary-btn" type="button">Reset Default</button>
+            <a href="/index.html" class="secondary-btn nav-btn">Back</a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script defer src="settings.js"></script>
+  </body>
+</html>

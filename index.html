@@ -13,15 +13,20 @@
     <div id="app" class="app-shell">
       <header class="notification-card screen-blur-target" aria-label="Sample notification">
         <div class="notification-meta">
-          <span class="notification-app">Messages</span>
-          <span class="notification-time">now</span>
+          <span id="notificationApp" class="notification-app">Messages</span>
+          <span id="notificationTime" class="notification-time">now</span>
         </div>
-        <div class="notification-title">Alex</div>
-        <div class="notification-text">Are we meeting at 5 PM? I can share the location.</div>
+        <div id="notificationTitle" class="notification-title">Alex</div>
+        <div id="notificationText" class="notification-text">
+          Are we meeting at 5 PM? I can share the location.
+        </div>
       </header>
 
       <main class="content-wrap screen-blur-target">
         <h1>TiltGuard</h1>
+        <div class="nav-row">
+          <a href="/settings.html" class="secondary-btn nav-btn">Customize Notification</a>
+        </div>
 
         <button id="enableBtn" class="primary-btn">Enable Privacy Protection</button>
         <div class="control-row">

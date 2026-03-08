@@ -79,6 +79,18 @@ h1 {
   font-size: clamp(1.4rem, 4.8vw, 1.8rem);
 }
 
+.nav-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nav-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .primary-btn {
   border: none;
   border-radius: 12px;
@@ -152,6 +164,36 @@ h1 {
   margin: 2px 0;
   font-size: 0.92rem;
   line-height: 1.2;
+}
+
+.settings-shell .content-wrap {
+  gap: 10px;
+}
+
+.settings-panel {
+  display: grid;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.84rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.field-input {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: #ffffff;
+  padding: 9px 10px;
+  width: 100%;
+}
+
+.field-area {
+  height: 72px;
+  resize: none;
 }
 
 #cameraFeed {
