@@ -1,35 +1,49 @@
 # TiltGuard
 
-TiltGuard is a mobile-first Progressive Web App (PWA) that simulates a smartphone privacy screen.
+TiltGuard is a mobile-first Progressive Web App (PWA) that protects sensitive on-screen content by monitoring phone orientation and front-camera face count.
 
-The app monitors:
+When risk is detected (unsafe tilt or multiple viewers), the app enters Privacy Mode and blacks out the notification card while keeping the debug dashboard visible.
 
-- Device tilt (`gamma`, `beta`) using motion/orientation sensors
-- Viewer count using front camera face detection
+## Key Features
 
-When unsafe conditions are detected, TiltGuard automatically enables Privacy Mode and obscures visible content.
+- Real-time tilt detection using `DeviceOrientationEvent` (`gamma`, `beta`)
+- Real-time face counting from front camera
+- Face engine fallback strategy:
+  - Primary: `face-api.js` TinyFaceDetector
+  - Fallback: browser-native `FaceDetector` API
+- Privacy trigger logic based on either:
+  - unsafe tilt, or
+  - more than one detected face
+- Privacy Mode UX:
+  - notification card is blacked out
+  - persistent privacy pill: `🔒 Privacy Mode Active`
+  - debug dashboard remains readable
+- Calibration and control tools:
+  - Sensitivity presets: `Relaxed`, `Balanced`, `Strict`
+  - `Calibrate Hold` button for natural hand posture
+  - `Reset Calibration` button
+  - `Camera Preview: ON/OFF` toggle
+- Rich dashboard status fields:
+  - `System`
+  - `Face Engine`
+  - `Sensitivity`
+  - `Tilt X`, `Tilt Y`
+  - `Faces Detected`
+  - `Privacy Mode`
+  - `Privacy Reason`
+- Installable PWA with offline caching
 
-## What It Does
+## Current Tilt Model
 
-- Activates privacy protection when:
-- `|gamma| > 25` degrees (left/right tilt)
-- OR `|beta| > 30` degrees (front/back tilt)
-- OR more than one face is detected
-- Deactivates privacy protection when tilt is safe and only one (or zero) face is present
-- Applies visual protection effects:
-- `filter: blur(10px) brightness(0.2)`
-- dark overlay with `"🔒 Privacy Mode Active"`
-- Includes a realistic fake notification card for demo realism
-- Shows live debug dashboard values for tilt, face count, and mode status
+TiltGuard now uses a handheld-friendly mid-range tilt model instead of strict absolute thresholds.
 
-## Tech Stack
+- Smoothed orientation input (`SMOOTHING_ALPHA`)
+- Sensitivity profiles with hysteresis:
+  - `activate` thresholds (enter Privacy Mode)
+  - `clear` thresholds (exit Privacy Mode)
+- Optional hold calibration offsets to normalize to user grip
 
-- HTML5, CSS3, JavaScript (ES6)
-- DeviceOrientationEvent API
-- MediaDevices `getUserMedia` (front camera)
-- `face-api.js` TinyFaceDetector (primary face engine)
-- Native `FaceDetector` API fallback when model files are unavailable
-- Web App Manifest + Service Worker for installability/offline usage
+This prevents false positives where natural handheld `beta` values were previously treated as unsafe.
 
 ## Project Structure
 
@@ -48,73 +62,77 @@ When unsafe conditions are detected, TiltGuard automatically enables Privacy Mod
 └── style.css
 ```
 
-## Core Modules
+## Core JavaScript Functions
 
-- `initSensors()`
-- Subscribes to `deviceorientation` events
-- `detectTilt(event)`
-- Updates `gamma`/`beta`, evaluates tilt trigger thresholds
 - `initCamera()`
-- Requests front camera access and binds stream to hidden preview video
-- `loadFaceModel()`
-- Loads `face-api.js` TinyFaceDetector from `/models`
-- Falls back to native `FaceDetector` where supported
+- `initSensors()`
+- `detectTilt()`
 - `detectFaces()`
-- Runs periodic face detection and updates trigger state
-- `activatePrivacyMode()` / `deactivatePrivacyMode()`
-- Toggles blur/dim/overlay UI state
+- `activatePrivacyMode()`
+- `deactivatePrivacyMode()`
 
-## Permissions Flow
+Supporting controls:
 
-User taps **Enable Privacy Protection** button:
+- `onSensitivityChange()`
+- `calibrateHoldPosition()`
+- `resetCalibration()`
+- `toggleCameraPreview()`
 
-1. Motion/orientation permission request (iOS Safari path included)
-2. Front camera permission request
-3. Face engine initialization
-4. Continuous tilt + face monitoring starts
+## Permission Flow
 
-If permissions are denied, protection is not enabled and user is prompted.
+User taps **Enable Privacy Protection**:
 
-## PWA Details
+1. Motion/orientation permission is requested (including iOS Safari flow)
+2. Front camera permission is requested
+3. Face engine is initialized (`face-api.js` or native fallback)
+4. Continuous tilt + face checks begin
 
-`manifest.json`:
+If permission/setup fails, app state updates in dashboard and the enable button resets.
+
+## PWA Configuration
+
+### `manifest.json`
 
 - `name`: `TiltGuard`
 - `short_name`: `TiltGuard`
+- `id`: `/`
+- `start_url`: `/`
+- `scope`: `/`
 - `display`: `standalone`
 - `theme_color`: `#000000`
 - `background_color`: `#000000`
-- Icons:
-- `192x192`
-- `512x512`
+- icons: `192x192`, `512x512`
 
-`service-worker.js`:
+### `service-worker.js`
 
-- Pre-caches app shell files:
-- `/index.html`
-- `/style.css`
-- `/script.js`
-- `/manifest.json`
-- app icons
-- Opportunistically caches face model files if present
-- Cache-first strategy for offline load after first visit
+- Cache version: `tiltguard-v5`
+- Pre-caches app shell:
+  - `/`
+  - `/index.html`
+  - `/style.css`
+  - `/script.js`
+  - `/manifest.json`
+  - `/icons/icon-192.png`
+  - `/icons/icon-512.png`
+- Opportunistically caches face model files
+- Navigation fallback returns cached app shell when network fails
 
-## Face Model Files (Optional but Recommended)
+## Face Model Files (Optional, Recommended)
 
-To use `face-api.js` TinyFaceDetector, download and place these files inside `models/`:
+To enable `face-api.js` TinyFaceDetector fully, add these files into `models/`:
 
 - `tiny_face_detector_model-weights_manifest.json`
 - `tiny_face_detector_model-shard1`
 
-Source:
+Download source:
 
 - https://github.com/justadudewhohacks/face-api.js/tree/master/weights
 
-If these files are missing, TiltGuard attempts to use the browser's native `FaceDetector` API instead.
+If unavailable, TiltGuard attempts native `FaceDetector`.
 
 ## Local Development
 
-From project root:
+Run a local server from project root:
 
 ```bash
 python3 -m http.server 8080
@@ -124,49 +142,44 @@ Open:
 
 - `http://localhost:8080`
 
-Then tap **Enable Privacy Protection** and grant permissions.
+Tap **Enable Privacy Protection** and allow camera + motion permissions.
 
-## Install on Mobile (PWA)
+## Install as PWA
 
 ### Android (Chrome)
 
-1. Host over HTTPS (or use localhost during development)
-2. Open app URL in Chrome
-3. Tap menu -> **Install app** / **Add to Home screen**
-4. Launch from home screen in standalone mode
+1. Open hosted HTTPS URL
+2. Chrome menu -> **Install app** / **Add to Home screen**
+3. Launch from home screen
 
 ### iOS (Safari)
 
-1. Host over HTTPS
-2. Open app URL in Safari
-3. Share -> **Add to Home Screen**
-4. Launch from home screen
+1. Open hosted HTTPS URL
+2. Share -> **Add to Home Screen**
+3. Launch from home screen
 
-## Testing Checklist
+If an older installed version behaves incorrectly after updates, uninstall and reinstall the PWA to refresh manifest/start URL behavior.
 
-- Tilt phone past threshold -> Privacy Mode ON
-- Return upright -> Privacy Mode OFF (if face count <= 1)
-- Add second visible person in frame -> Privacy Mode ON
-- Disable second viewer -> Privacy Mode OFF (if tilt safe)
-- Reload offline after first load -> app shell still opens
+## Validation Checklist
+
+- App enables after permissions are granted
+- Natural handheld posture remains visible
+- Extreme tilt triggers Privacy Mode
+- Multiple faces trigger Privacy Mode
+- Notification card blacks out in Privacy Mode
+- Dashboard remains visible in all states
+- Camera preview toggle affects only preview visibility, not detection loop
+- App opens offline after first successful load
 
 ## Browser Notes
 
-- Best target: modern Android Chrome
-- iOS Safari motion permission requires user gesture and explicit permission flow
-- Camera access requires secure context (`https://` or `localhost`)
-- Native `FaceDetector` support varies by browser/version
+- Best target: Android Chrome (latest)
+- iOS Safari requires user gesture for sensor permission
+- Camera requires secure context (`https://` or `localhost`)
+- Native `FaceDetector` support varies by browser
 
-## Security and Privacy Notes
+## Privacy Notes
 
-- Camera stream is processed client-side in browser runtime
-- No backend and no data upload in this demo
-- Service worker caches static assets for offline use
-
-## Future Improvements
-
-- Adjustable tilt sensitivity controls
-- User-defined privacy intensity (blur/brightness)
-- Better anti-spoofing face confidence handling
-- Battery-aware adaptive scan intervals
-- Accessibility settings for overlay and announcements
+- Processing is client-side in browser
+- No backend in this project
+- No camera data is uploaded by app logic
